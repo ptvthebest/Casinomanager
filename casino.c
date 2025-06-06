@@ -2,6 +2,14 @@
 #include "casino.h"
 #include <errno.h>
 #include <string.h>
+#include <stdio.h>
+
+static const char* PLAYERS_FILENAME = "players.dat";
+static const char* GAMES_FILENAME = "games.dat";
+
+static void logOperation(const char* op) {
+    printf("[LOG] %s\n", op);
+}
 
 Player* players = NULL;
 Game* games = NULL;
@@ -16,7 +24,6 @@ void freeMemory() {
     players = NULL;
     games = NULL;
 }
-
 
 void addPlayer() {
     Player* tmp = realloc(players, (playerCount + 1) * sizeof(Player));
@@ -44,10 +51,10 @@ void listPlayers() {
     printf("\nLista svih igrača:\n");
     for (int i = 0; i < playerCount; i++) {
         printf("%d. %s %s - Saldo: %.2lf\n",
-            players[i].playerID,
-            players[i].firstName,
-            players[i].lastName,
-            players[i].balance);
+               players[i].playerID,
+               players[i].firstName,
+               players[i].lastName,
+               players[i].balance);
     }
 }
 
@@ -88,7 +95,7 @@ void deletePlayer() {
 }
 
 void savePlayers() {
-    FILE* file = fopen("players.dat", "wb");
+    FILE* file = fopen(PLAYERS_FILENAME, "wb");
     if (!file) {
         perror("Greska pri otvaranju datoteke za zapis igraca");
         return;
@@ -99,8 +106,22 @@ void savePlayers() {
 }
 
 void loadPlayers() {
-    FILE* file = fopen("players.dat", "rb");
+    FILE* file = fopen(PLAYERS_FILENAME, "rb");
     if (!file) return;
+
+    if (fseek(file, 0, SEEK_END) != 0) {
+        perror("Greska prilikom pomicanja na kraj datoteke");
+        fclose(file);
+        return;
+    }
+    long fileSize = ftell(file);
+    if (fileSize == -1L) {
+        perror("Greska prilikom citanja pozicije u datoteci");
+        fclose(file);
+        return;
+    }
+    rewind(file);
+
     fread(&playerCount, sizeof(int), 1, file);
     players = malloc(playerCount * sizeof(Player));
     if (!players && playerCount > 0) {
@@ -111,6 +132,7 @@ void loadPlayers() {
     fread(players, sizeof(Player), playerCount, file);
     nextPlayerID = playerCount > 0 ? players[playerCount - 1].playerID + 1 : 1;
     fclose(file);
+    logOperation("Ucitani su podaci o igracima iz datoteke.");
 }
 
 int compareByBalance(const void* a, const void* b) {
@@ -143,17 +165,16 @@ void recursivePrintPlayers(int index) {
     if (index >= playerCount)
         return;
     printf("%d. %s %s - Saldo: %.2lf\n",
-        players[index].playerID,
-        players[index].firstName,
-        players[index].lastName,
-        players[index].balance);
+           players[index].playerID,
+           players[index].firstName,
+           players[index].lastName,
+           players[index].balance);
     recursivePrintPlayers(index + 1);
 }
 
 Player* findPlayerByID(int id) {
     return searchPlayerBinary(id);
 }
-
 
 void addGame() {
     Game* tmp = realloc(games, (gameCount + 1) * sizeof(Game));
@@ -181,10 +202,10 @@ void listGames() {
     printf("\nLista svih igara:\n");
     for (int i = 0; i < gameCount; i++) {
         printf("%d. %s - Min: %.2lf, Max: %.2lf\n",
-            games[i].gameID,
-            games[i].gameName,
-            games[i].minBet,
-            games[i].maxBet);
+               games[i].gameID,
+               games[i].gameName,
+               games[i].minBet,
+               games[i].maxBet);
     }
 }
 
@@ -227,7 +248,7 @@ void deleteGame() {
 }
 
 void saveGames() {
-    FILE* file = fopen("games.dat", "wb");
+    FILE* file = fopen(GAMES_FILENAME, "wb");
     if (!file) {
         perror("Greska pri zapisu igara");
         return;
@@ -238,8 +259,22 @@ void saveGames() {
 }
 
 void loadGames() {
-    FILE* file = fopen("games.dat", "rb");
+    FILE* file = fopen(GAMES_FILENAME, "rb");
     if (!file) return;
+
+    if (fseek(file, 0, SEEK_END) != 0) {
+        perror("Greska prilikom pomicanja na kraj datoteke za igre");
+        fclose(file);
+        return;
+    }
+    long fileSize = ftell(file);
+    if (fileSize == -1L) {
+        perror("Greska prilikom citanja pozicije u datoteci za igre");
+        fclose(file);
+        return;
+    }
+    rewind(file);
+
     fread(&gameCount, sizeof(int), 1, file);
     games = malloc(gameCount * sizeof(Game));
     if (!games && gameCount > 0) {
@@ -250,6 +285,7 @@ void loadGames() {
     fread(games, sizeof(Game), gameCount, file);
     nextGameID = gameCount > 0 ? games[gameCount - 1].gameID + 1 : 1;
     fclose(file);
+    logOperation("Ucitane su igre iz datoteke.");
 }
 
 void sortGames() {
@@ -262,9 +298,8 @@ void sortGames() {
             int swap = 0;
             if ((choice == 1 && strcmp(games[j].gameName, games[j + 1].gameName) > 0) ||
                 (choice == 2 && games[j].minBet > games[j + 1].minBet) ||
-                (choice == 3 && games[j].maxBet > games[j + 1].maxBet)) {
+                (choice == 3 && games[j].maxBet > games[j + 1].maxBet))
                 swap = 1;
-            }
             if (swap) {
                 Game temp = games[j];
                 games[j] = games[j + 1];
@@ -277,26 +312,19 @@ void sortGames() {
     listGames();
 }
 
-
 void renameFile(const char* oldName, const char* newName) {
-    if (rename(oldName, newName) != 0) {
+    if (rename(oldName, newName) != 0)
         perror("Greska pri preimenovanju datoteke");
-    }
-    else {
+    else
         printf("Datoteka je preimenovana.\n");
-    }
 }
 
 void deleteFile(const char* filename) {
-    if (remove(filename) != 0) {
+    if (remove(filename) != 0)
         perror("Greska pri brisanju datoteke");
-    }
-    else {
+    else
         printf("Datoteka obrisana.\n");
-    }
 }
-
-
 
 void sortPlayersWithFunctionPointer(CompareFunc cmp) {
     qsort(players, playerCount, sizeof(Player), cmp);
