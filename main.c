@@ -22,7 +22,6 @@ int main() {
         printf("12. Sortiraj igre (bubble sort)\n");
         printf("13. Preimenuj datoteku\n");
         printf("14. Obrisi datoteku\n");
-
         printf("16. Sortiraj igrace funkcijskim pokazivacem\n");
         printf("0. Izlaz\n");
         printf("Odabir: ");
@@ -90,7 +89,6 @@ int main() {
             deleteFile(filename);
             break;
         }
-
         case 16:
             sortPlayersWithFunctionPointer(compareByBalance);
             break;
