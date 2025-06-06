@@ -9,7 +9,6 @@
 #define MAX_NAME_LENGTH 50
 #define ERROR_EXIT 1
 
-
 typedef enum {
     SLOT_MACHINE,
     ROULETTE,
@@ -17,12 +16,10 @@ typedef enum {
     POKER
 } GameType;
 
-
 typedef union {
     int spinNumber;
     char dealerName[MAX_NAME_LENGTH];
 } BetData;
-
 
 typedef struct {
     int playerID;
@@ -30,7 +27,6 @@ typedef struct {
     char lastName[MAX_NAME_LENGTH];
     double balance;
 } Player;
-
 
 typedef struct {
     int gameID;
@@ -40,7 +36,6 @@ typedef struct {
     GameType type;
     BetData extraData;
 } Game;
-
 
 typedef enum {
     DODAJ_IGRACA = 1,
@@ -69,7 +64,6 @@ extern int gameCount;
 extern int nextPlayerID;
 extern int nextGameID;
 
-
 void addPlayer();
 void listPlayers();
 void updatePlayer();
@@ -94,8 +88,6 @@ void freeMemory();
 
 void renameFile(const char* oldName, const char* newName);
 void deleteFile(const char* filename);
-
-
 
 typedef int (*CompareFunc)(const void*, const void*);
 void sortPlayersWithFunctionPointer(CompareFunc cmp);
