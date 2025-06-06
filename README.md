@@ -1,0 +1,2 @@
+# Casinomanager
+no
